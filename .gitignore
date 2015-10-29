@@ -1,0 +1,25 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+# Compiled executables
+bin/
+*.exe
+
+# eclipse data
+*.project
+*.cproject
+*.settings
+
+# logfiles
+logs/
