@@ -29,6 +29,7 @@ namespace core {
       MAX
     };
 
+    variant() : m_type(UINT), m_uint_value(0) {};
     variant(std::uint64_t const value) : m_type(UINT), m_uint_value(value) {}
     variant(std::int64_t const value) : m_type(INT), m_int_value(value) {}
     variant(double const value) : m_type(DOUBLE), m_double_value(value) {}
@@ -50,6 +51,7 @@ namespace core {
     friend bool operator<(variant const& lhs, variant const& rhs) { return lhs.m_uint_value < rhs.m_uint_value; }
     friend bool operator>(variant const& lhs, variant const& rhs) { return lhs.m_uint_value > rhs.m_uint_value; }
 
+    std::uint64_t const get_type() const { return std::uint64_t(m_type); }
     std::uint64_t const get_uint_value() const { return m_uint_value; }
     std::int64_t const get_int_value() const { return m_int_value; }
     double const get_double_value() const { return m_double_value; }
