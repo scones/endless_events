@@ -1,6 +1,6 @@
 CC                 = g++
 
-INCLUDES           = -Iinclude
+INCLUDES           = -I../include -Iinclude
 
 CFLAGS             = $(INCLUDES) -c -Wall -pedantic -std=c++11 -finput-charset=UTF-8 -ggdb
 
