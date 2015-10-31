@@ -31,6 +31,7 @@ namespace core {
     ~event() {}
 
     core::variant const& operator[](std::string const& name) { return m_argument_map[name]; }
+    core::variant const& get_argument(std::string const& name) { return m_argument_map[name]; }
     std::uint32_t const get_type() const { return c_type; }
 
 
