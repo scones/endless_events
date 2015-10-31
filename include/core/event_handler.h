@@ -10,45 +10,60 @@
 
 
 #include "event_receiver.h"
+#include "event.h"
+
+
+#include <stdexcept>
+#include <iostream>
 
 
 namespace core {
 
   class event_handler {
-    typedef std::unordered_map<std::uint32_t, std::vector<event const *>> t_event_vector_map;
+
+    public:
 
 
     event_handler() {}
     ~event_handler() {}
 
-    void bind(std::uint32_t const type, core::event_receiver* const object) {
+    void bind(std::uint32_t const type, core::event_receiver* object) {
       m_registries[type].push_back(object);
     }
 
-    void unbind(std::uint32_t const type, core::event_receiver const * const object) {
-      auto& pair = m_registries[type];
-      for (auto it = pair.second().begin(); it != pair.second().end(); ++it) {
+    void unbind(std::uint32_t const type, core::event_receiver* object) {
+      auto& receivers = m_registries[type];
+      for (auto it = receivers.begin(); it != receivers.end(); ++it) {
         if (*it == object) {
-          pair.second().erase(it);
+          receivers.erase(it);
         }
       }
     }
 
-    void unbind(core::event_receiver const * const object) {
+    void unbind(core::event_receiver * object) {
       for (auto& pair : m_registries) {
-        for (auto it = pair.second().begin(); it != pair.second().end(); ++it) {
+        for (auto it = pair.second.begin(); it != pair.second.end(); ++it) {
           if (*it == object) {
-            pair.second().erase(it);
+            pair.second.erase(it);
           }
         }
       }
     }
 
+    void propagate_event(event const& e) {
+      try {
+        auto receivers = m_registries.at(e.get_type());
+        for (auto receiver : receivers)
+          receiver->receive_event(e);
+      } catch (std::out_of_range &oor) {
+      }
+    }
 
     protected:
 
 
-    t_event_vector_map m_registries;
+    typedef std::unordered_map<std::uint32_t, std::vector<event_receiver *>> t_event_receiver_vector_map;
+    t_event_receiver_vector_map m_registries;
   };
 
 }
