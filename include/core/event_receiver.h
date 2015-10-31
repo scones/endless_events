@@ -9,20 +9,29 @@
 #define INCLUDE_CORE_EVENT_RECEIVER_H_
 
 
+#include "core/event.h"
+
+
 namespace core {
 
   class event_receiver {
-    typedef std::vector<core::event const*> t_event_vector;
+    typedef std::vector<core::event*> t_event_vector;
 
 
     public:
 
 
     event_receiver() : m_events() {}
+    virtual ~event_receiver() {};
 
-    void event_receive(event const *e) { m_events.push_back(e); }
-    t_event_vector const& event_get_events() const { return m_events; }
-    void event_clear_events() { m_events.clear(); }
+
+    void receive_event(event const &e) { m_events.push_back(new core::event(e)); }
+    t_event_vector const& get_events() const { return m_events; }
+    void clear_events() {
+      for (auto &e : m_events)
+        delete e;
+      m_events.clear();
+    }
 
 
     private:
