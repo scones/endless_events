@@ -13,14 +13,14 @@
 #include <boost/test/unit_test.hpp>
 
 
-#include "core/event.h"
+#include "core/event/event.h"
 
 
 BOOST_AUTO_TEST_SUITE(event_test)
 
 
 BOOST_AUTO_TEST_CASE(getter) {
-  core::event e(
+  core::event::event e(
     1,
     {
       {"id", std::uint64_t(512)},

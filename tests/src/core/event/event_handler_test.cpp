@@ -13,14 +13,14 @@
 #include <boost/test/unit_test.hpp>
 
 
-#include "core/event_handler.h"
+#include "core/event/event_handler.h"
 
 
-class event_handler_test_class : public core::event_receiver {
+class event_handler_test_class : public core::event::event_receiver {
 
   public:
 
-  event_handler_test_class() : core::event_receiver() {}
+  event_handler_test_class() : core::event::event_receiver() {}
   ~event_handler_test_class() {};
 
 };
@@ -32,19 +32,19 @@ BOOST_AUTO_TEST_SUITE(event_handler_test)
 BOOST_AUTO_TEST_CASE(bind) {
   event_handler_test_class t1;
   event_handler_test_class t2;
-  core::event_handler x;
+  core::event::event_handler x;
   x.bind(32, &t1);
   x.bind(32, &t2);
 
   // fire event type 32
-  x.propagate_event(core::event(32, {{"id", std::uint64_t(31)}}));
+  x.propagate_event(core::event::event(32, {{"id", std::uint64_t(31)}}));
   BOOST_CHECK(32 == t1.get_events().front()->get_type());
   BOOST_CHECK(1 == t1.get_events().size());
   BOOST_CHECK(32 == t2.get_events().front()->get_type());
   BOOST_CHECK(1 == t2.get_events().size());
 
   // fire event type 31
-  x.propagate_event(core::event(31, {{"id", "53"}}));
+  x.propagate_event(core::event::event(31, {{"id", "53"}}));
   BOOST_CHECK(1 == t1.get_events().size());
   BOOST_CHECK(1 == t2.get_events().size());
 }
@@ -53,19 +53,19 @@ BOOST_AUTO_TEST_CASE(bind) {
 BOOST_AUTO_TEST_CASE(unbind) {
   event_handler_test_class t1;
   event_handler_test_class t2;
-  core::event_handler x;
+  core::event::event_handler x;
   x.bind(32, &t1);
   x.bind(32, &t2);
 
   // fire event type 32
-  x.propagate_event(core::event(32, {{"id", std::uint64_t(31)}}));
+  x.propagate_event(core::event::event(32, {{"id", std::uint64_t(31)}}));
   BOOST_CHECK(32 == t1.get_events().front()->get_type());
   BOOST_CHECK(1 == t1.get_events().size());
   BOOST_CHECK(32 == t2.get_events().front()->get_type());
   BOOST_CHECK(1 == t2.get_events().size());
 
   x.unbind(32, &t1);
-  x.propagate_event(core::event(32, {{"id", std::uint64_t(31)}}));
+  x.propagate_event(core::event::event(32, {{"id", std::uint64_t(31)}}));
   BOOST_CHECK(32 == t2.get_events()[1]->get_type());
   BOOST_CHECK(2 == t2.get_events().size());
   BOOST_CHECK(1 == t1.get_events().size());
@@ -75,21 +75,21 @@ BOOST_AUTO_TEST_CASE(unbind) {
 BOOST_AUTO_TEST_CASE(unbind_all) {
   event_handler_test_class t1;
   event_handler_test_class t2;
-  core::event_handler x;
+  core::event::event_handler x;
   x.bind(32, &t1);
   x.bind(32, &t2);
   x.bind(33, &t1);
   x.bind(33, &t2);
 
   // fire event type 32
-  x.propagate_event(core::event(32, {{"id", std::uint64_t(31)}}));
-  x.propagate_event(core::event(33, {{"id", std::uint64_t(31)}}));
+  x.propagate_event(core::event::event(32, {{"id", std::uint64_t(31)}}));
+  x.propagate_event(core::event::event(33, {{"id", std::uint64_t(31)}}));
   BOOST_CHECK(2 == t1.get_events().size());
   BOOST_CHECK(2 == t2.get_events().size());
 
   x.unbind(&t1);
-  x.propagate_event(core::event(32, {{"id", std::uint64_t(31)}}));
-  x.propagate_event(core::event(33, {{"id", std::uint64_t(31)}}));
+  x.propagate_event(core::event::event(32, {{"id", std::uint64_t(31)}}));
+  x.propagate_event(core::event::event(33, {{"id", std::uint64_t(31)}}));
   BOOST_CHECK(4 == t2.get_events().size());
   BOOST_CHECK(2 == t1.get_events().size());
 }
