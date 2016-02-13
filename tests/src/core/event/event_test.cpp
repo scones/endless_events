@@ -21,14 +21,14 @@ BOOST_AUTO_TEST_SUITE(event_test)
 
 BOOST_AUTO_TEST_CASE(getter) {
   core::event::event e(
-    1,
+    "1",
     {
       {"id", std::uint64_t(512)},
       {"time", std::uint64_t(12345678901)}
     }
   );
 
-  BOOST_CHECK(1 == e.get_type());
+  BOOST_CHECK("1" == e.get_type());
   BOOST_CHECK(512 == e["id"]);
 }
 

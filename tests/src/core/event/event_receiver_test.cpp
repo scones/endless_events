@@ -34,10 +34,10 @@ BOOST_AUTO_TEST_CASE(main_event_propagate) {
 
   BOOST_CHECK(0 == x.get_events().size());
 
-  core::event::event y(std::uint64_t(12), {{"id", std::uint64_t(123)}});
+  core::event::event y("12", {{"id", std::uint64_t(123)}});
   x.receive_event(y);
   BOOST_CHECK(1 == x.get_events().size());
-  BOOST_CHECK(12 == x.get_events().front()->get_type());
+  BOOST_CHECK("12" == x.get_events().front()->get_type());
   BOOST_CHECK(123 == x.get_events().front()->get_argument("id"));
 
   x.clear_events();

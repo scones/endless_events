@@ -29,11 +29,11 @@ namespace core {
       event_handler() {}
       ~event_handler() {}
 
-      void bind(std::uint32_t const type, core::event::event_receiver* object) {
+      void bind(std::string const& type, core::event::event_receiver* object) {
         m_registries[type].push_back(object);
       }
 
-      void unbind(std::uint32_t const type, core::event::event_receiver* object) {
+      void unbind(std::string const& type, core::event::event_receiver* object) {
         auto& receivers = m_registries[type];
         for (auto it = receivers.begin(); it != receivers.end(); ++it) {
           if (*it == object) {
@@ -65,7 +65,7 @@ namespace core {
       protected:
 
 
-      typedef std::unordered_map<std::uint32_t, std::vector<event_receiver *>> t_event_receiver_vector_map;
+      typedef std::unordered_map<std::string, std::vector<event_receiver *>> t_event_receiver_vector_map;
       t_event_receiver_vector_map m_registries;
     };
 
