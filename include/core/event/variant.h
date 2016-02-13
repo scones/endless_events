@@ -28,6 +28,7 @@ namespace core {
         DOUBLE,
         BOOL,
         POINTER,
+        STRING,
         MAX
       };
 
@@ -37,6 +38,7 @@ namespace core {
       variant(double const value) : m_type(DOUBLE), m_double_value(value) {}
       variant(bool const value) : m_type(BOOL), m_uint_value((std::uint64_t)value) {}
       variant(void* const value) : m_type(POINTER), m_pointer_value(value) {}
+      variant(char const* value) : m_type(STRING), m_string_value(value) {}
 
       variant(variant const& rhs) = default;
       variant(variant&& rhs) = default;
@@ -45,6 +47,7 @@ namespace core {
       void operator=(std::int64_t const value) { m_int_value = value; }
       void operator=(double const value) { m_double_value = value; }
       void operator=(bool const value) { m_uint_value = (std::uint64_t)value; }
+      void operator=(char const* value) { m_string_value = value; }
 
       bool operator!() { return 0 == m_uint_value; }
       friend bool operator==(variant const& lhs, variant const& rhs) { return lhs.m_uint_value == rhs.m_uint_value; }
@@ -59,6 +62,7 @@ namespace core {
       double const get_double_value() const { return m_double_value; }
       bool const get_bool_value() const { return 0 != m_uint_value; }
       void* const get_pointer_value() const { return m_pointer_value; }
+      char const* get_string_value() const { return m_string_value; }
 
 
       protected:
@@ -71,6 +75,7 @@ namespace core {
         std::int64_t m_int_value;
         double m_double_value;
         void* const m_pointer_value;
+        char const* m_string_value;
       };
 
     };

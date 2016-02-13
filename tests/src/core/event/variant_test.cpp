@@ -16,6 +16,9 @@
 #include "core/event/variant.h"
 
 
+#include <cstring>
+
+
 BOOST_AUTO_TEST_SUITE(variant_test)
 
 
@@ -24,6 +27,7 @@ BOOST_AUTO_TEST_CASE(getter) {
   BOOST_CHECK(std::int64_t(-1) == core::event::variant(std::int64_t(-1)).get_int_value());
   BOOST_CHECK(double(1.2e16) == core::event::variant(double(1.2e16)).get_double_value());
   BOOST_CHECK((void*)(this) == core::event::variant((void*)(this)).get_pointer_value());
+  BOOST_CHECK(0 == std::strcmp("foo bar", core::event::variant("foo bar").get_string_value()));
   BOOST_CHECK(core::event::variant::TYPE::INT == core::event::variant(std::int64_t(-3)).get_type());
 }
 
@@ -70,6 +74,9 @@ BOOST_AUTO_TEST_CASE(setter) {
 
   x = 1.2e16;
   BOOST_CHECK(1.2e16 == x.get_double_value());
+
+  x = "meh";
+  BOOST_CHECK(0 == std::strcmp("meh", x.get_string_value()));
 }
 
 
