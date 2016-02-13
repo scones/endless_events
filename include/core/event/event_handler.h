@@ -29,9 +29,11 @@ namespace core {
       event_handler() {}
       ~event_handler() {}
 
+
       void bind(std::string const& type, core::event::event_receiver* object) {
         m_registries[type].push_back(object);
       }
+
 
       void unbind(std::string const& type, core::event::event_receiver* object) {
         auto& receivers = m_registries[type];
@@ -41,6 +43,7 @@ namespace core {
           }
         }
       }
+
 
       void unbind(core::event::event_receiver * object) {
         for (auto& pair : m_registries) {
@@ -52,9 +55,22 @@ namespace core {
         }
       }
 
+
       void propagate_event(event const& e) {
         try {
           auto receivers = m_registries.at(e.get_type());
+          for (auto receiver : receivers)
+            receiver->receive_event(e);
+        } catch (std::out_of_range &oor) {
+        }
+      }
+
+
+      // same as propagate_event, just with delay
+      void enqueue(event& e, std::uint32_t delay = 0) {
+        try {
+          auto receivers = m_registries.at(e.get_type());
+          e.set_delay(delay);
           for (auto receiver : receivers)
             receiver->receive_event(e);
         } catch (std::out_of_range &oor) {
