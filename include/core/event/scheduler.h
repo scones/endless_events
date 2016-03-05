@@ -102,7 +102,6 @@ namespace core {
 
 
       void swap() {
-        std::cout << "--- swap start ---" << std::endl;
         // clear front queue
         for (auto& priority_queue : *m_queued_front_events) {
           for (auto e : *priority_queue)
@@ -118,7 +117,6 @@ namespace core {
         // check delayed queues and fill front queue
         std::uint64_t const CURRENT_TIME = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
         for (int i(0); i < PRIORITY::MAX; ++i) {
-          std::cout << " scanning priority: " << i << std::endl;
           for (auto& timed_priority_pair : m_time_delayed_events[i]) {
             if (timed_priority_pair.first <= CURRENT_TIME) {
               (*m_queued_front_events)[i]->insert(std::end(*(*m_queued_front_events)[i]), std::begin(*timed_priority_pair.second), std::end(*timed_priority_pair.second));
@@ -128,24 +126,17 @@ namespace core {
 
           auto& priority_frame_map = m_frame_delayed_events[i];
           if (priority_frame_map.end() != priority_frame_map.find(1)) {
-            std::cout << "1" << std::endl;
-            std::cout << "size: " << priority_frame_map[1]->size() << std::endl;
             (*m_queued_front_events)[i]->insert(std::end(*(*m_queued_front_events)[i]), std::begin(*priority_frame_map[1]), std::end(*priority_frame_map[1]));
-            std::cout << "1" << std::endl;
           }
           for (auto& frame_priority_pair : m_frame_delayed_events[i]) {
-            std::cout << "2" << std::endl;
             if (frame_priority_pair.first > 1) {
-              std::cout << "3" << std::endl;
               m_frame_delayed_events[i][frame_priority_pair.first - 1] = m_frame_delayed_events[i][frame_priority_pair.first];
               m_frame_delayed_events[i].erase(frame_priority_pair.first);
             } else {
-              std::cout << "4" << std::endl;
               m_frame_delayed_events[i].erase(frame_priority_pair.first);
             }
           }
         }
-        std::cout << "--- swap end ---" << std::endl;
       }
 
 
