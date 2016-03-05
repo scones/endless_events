@@ -95,17 +95,5 @@ BOOST_AUTO_TEST_CASE(unbind_all) {
 }
 
 
-BOOST_AUTO_TEST_CASE(enqueue_test) {
-  event_handler_test_class t1;
-  core::event::event_handler x;
-  core::event::event e("some_event", {});
-
-  x.bind("some_event", &t1);
-  x.enqueue(e, 3);
-
-  BOOST_CHECK(3 == t1.get_events()[0]->get_delay());
-}
-
-
 BOOST_AUTO_TEST_SUITE_END()
 

@@ -30,25 +30,6 @@ BOOST_AUTO_TEST_CASE(getter) {
 
   BOOST_CHECK("1" == e.get_type());
   BOOST_CHECK(512 == e["id"]);
-  BOOST_CHECK(  0 == e.get_delay());
-}
-
-BOOST_AUTO_TEST_CASE(delay_test) {
-  core::event::event e(
-    "2",
-    {
-      {"id", std::uint64_t(123)}
-    },
-    2
-  );
-
-  BOOST_CHECK("2" == e.get_type());
-  BOOST_CHECK(123 == e["id"]);
-  BOOST_CHECK(  2 == e.get_delay());
-
-  e.set_delay(3);
-
-  BOOST_CHECK(  3 == e.get_delay());
 }
 
 

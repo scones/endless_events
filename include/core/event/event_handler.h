@@ -66,18 +66,6 @@ namespace core {
       }
 
 
-      // same as propagate_event, just with delay
-      void enqueue(event& e, std::uint32_t delay = 0) {
-        try {
-          auto receivers = m_registries.at(e.get_type());
-          e.set_delay(delay);
-          for (auto receiver : receivers)
-            receiver->receive_event(e);
-        } catch (std::out_of_range &oor) {
-        }
-      }
-
-
       protected:
 
 
