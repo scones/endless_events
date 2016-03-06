@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include <chrono>
 #include <iostream>
+#include <type_traits>
 
 
 namespace core {
@@ -34,12 +35,23 @@ namespace core {
         LOW,
         MAX
       };
+
       typedef std::vector<event*> t_event_vector;
       typedef std::vector<t_event_vector*> t_event_queue;
       typedef std::vector<std::unordered_map<std::uint64_t, t_event_vector*>> t_event_map;
 
+      using event_callback_function = std::add_pointer<void(event const&)>::type;
 
-      scheduler() : m_front_events(), m_queued_back_events(), m_time_delayed_events(PRIORITY::MAX), m_frame_delayed_events(PRIORITY::MAX), m_reserve_level(1) {
+
+      scheduler()
+        :
+          m_front_events(),
+          m_queued_back_events(),
+          m_time_delayed_events(PRIORITY::MAX),
+          m_frame_delayed_events(PRIORITY::MAX),
+          m_reserve_level(1),
+          m_event_callback_function(nullptr)
+      {
         init();
       }
 
@@ -53,15 +65,6 @@ namespace core {
         m_queued_back_events = new t_event_queue(PRIORITY::MAX);
         for (std::uint32_t i(0); i < PRIORITY::MAX; ++i) {
           (*m_queued_back_events)[i] = new t_event_vector;
-          (*m_queued_back_events)[i]->reserve(MINIMUM_EVENT_RESERVE << m_reserve_level);
-        }
-        m_front_events.reserve(MINIMUM_EVENT_RESERVE << (m_reserve_level + 2) );
-      }
-
-
-      void increase_reserve_level() {
-        ++m_reserve_level;
-        for (std::uint32_t i(0); i < PRIORITY::MAX; ++i) {
           (*m_queued_back_events)[i]->reserve(MINIMUM_EVENT_RESERVE << m_reserve_level);
         }
         m_front_events.reserve(MINIMUM_EVENT_RESERVE << (m_reserve_level + 2) );
@@ -102,6 +105,20 @@ namespace core {
           }
           priority_map.clear();
         }
+      }
+
+
+      void increase_reserve_level() {
+        ++m_reserve_level;
+        for (std::uint32_t i(0); i < PRIORITY::MAX; ++i) {
+          (*m_queued_back_events)[i]->reserve(MINIMUM_EVENT_RESERVE << m_reserve_level);
+        }
+        m_front_events.reserve(MINIMUM_EVENT_RESERVE << (m_reserve_level + 2) );
+      }
+
+
+      void set_event_callback(event_callback_function func) {
+        m_event_callback_function = func;
       }
 
 
@@ -150,8 +167,15 @@ namespace core {
       }
 
 
-      t_event_vector pull_events() {
-        return m_front_events;
+      t_event_vector* poll_events() {
+        if (m_event_callback_function) {
+          for (auto front_event : m_front_events) {
+            m_event_callback_function(*front_event);
+          }
+          return nullptr;
+        } else {
+          return &m_front_events;
+        }
       }
 
 
@@ -210,6 +234,7 @@ namespace core {
       t_event_map m_time_delayed_events;
       t_event_map m_frame_delayed_events;
       std::uint64_t m_reserve_level;
+      event_callback_function m_event_callback_function;
     };
 
   }
