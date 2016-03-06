@@ -39,7 +39,7 @@ namespace core {
       typedef std::vector<std::unordered_map<std::uint64_t, t_event_vector*>> t_event_map;
 
 
-      scheduler() : m_time_delayed_events(PRIORITY::MAX), m_frame_delayed_events(PRIORITY::MAX) {
+      scheduler() : m_front_events(), m_queued_back_events(), m_time_delayed_events(PRIORITY::MAX), m_frame_delayed_events(PRIORITY::MAX), m_reserve_level(1) {
         init();
       }
 
@@ -50,26 +50,30 @@ namespace core {
 
 
       void init() {
-        m_queued_front_events = new t_event_queue(PRIORITY::MAX);
         m_queued_back_events = new t_event_queue(PRIORITY::MAX);
         for (std::uint32_t i(0); i < PRIORITY::MAX; ++i) {
-          (*m_queued_front_events)[i] = new t_event_vector;
           (*m_queued_back_events)[i] = new t_event_vector;
-          (*m_queued_front_events)[i]->reserve(MINIMUM_EVENT_RESERVE);
-          (*m_queued_back_events)[i]->reserve(MINIMUM_EVENT_RESERVE);
+          (*m_queued_back_events)[i]->reserve(MINIMUM_EVENT_RESERVE << m_reserve_level);
         }
+        m_front_events.reserve(MINIMUM_EVENT_RESERVE << (m_reserve_level + 2) );
+      }
 
+
+      void increase_reserve_level() {
+        ++m_reserve_level;
+        for (std::uint32_t i(0); i < PRIORITY::MAX; ++i) {
+          (*m_queued_back_events)[i]->reserve(MINIMUM_EVENT_RESERVE << m_reserve_level);
+        }
+        m_front_events.reserve(MINIMUM_EVENT_RESERVE << (m_reserve_level + 2) );
       }
 
 
       void shutdown() {
         // delete front
-        for (auto& priority_queue : *m_queued_front_events) {
-          for (auto e : *priority_queue)
-            delete e;
-          delete priority_queue;
+        for (auto& front_event : m_front_events) {
+          delete front_event;
         }
-        m_queued_front_events->clear();
+        m_front_events.clear();
 
         // delete back
         for (auto& priority_queue : *m_queued_back_events) {
@@ -103,30 +107,33 @@ namespace core {
 
       void swap() {
         // clear front queue
-        for (auto& priority_queue : *m_queued_front_events) {
-          for (auto e : *priority_queue)
-            delete e;
-          priority_queue->clear();
-        }
-
-        // swap queues
-        auto tmp = m_queued_back_events;
-        m_queued_back_events = m_queued_front_events;
-        m_queued_front_events = tmp;
+        for (auto& front_event : m_front_events)
+          delete front_event;
+        m_front_events.clear();
 
         // check delayed queues and fill front queue
+        std::uint32_t extra_event_count = 0;
         std::uint64_t const CURRENT_TIME = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
         for (int i(0); i < PRIORITY::MAX; ++i) {
+
+          // copy from basic back events
+          m_front_events.insert(std::end(m_front_events), std::begin(*((*m_queued_back_events)[i])), std::end(*((*m_queued_back_events)[i])));
+          (*m_queued_back_events)[i]->clear();
+
+          // copy elapsed time events
           for (auto& timed_priority_pair : m_time_delayed_events[i]) {
             if (timed_priority_pair.first <= CURRENT_TIME) {
-              (*m_queued_front_events)[i]->insert(std::end(*(*m_queued_front_events)[i]), std::begin(*timed_priority_pair.second), std::end(*timed_priority_pair.second));
+              extra_event_count += timed_priority_pair.second->size();
+              m_front_events.insert(std::end(m_front_events), std::begin(*timed_priority_pair.second), std::end(*timed_priority_pair.second));
               m_time_delayed_events[i].erase(timed_priority_pair.first);
             }
           }
 
+          // copy elasped frame events
           auto& priority_frame_map = m_frame_delayed_events[i];
           if (priority_frame_map.end() != priority_frame_map.find(1)) {
-            (*m_queued_front_events)[i]->insert(std::end(*(*m_queued_front_events)[i]), std::begin(*priority_frame_map[1]), std::end(*priority_frame_map[1]));
+            extra_event_count += priority_frame_map[1]->size();
+            m_front_events.insert(std::end(m_front_events), std::begin(*priority_frame_map[1]), std::end(*priority_frame_map[1]));
           }
           for (auto& frame_priority_pair : m_frame_delayed_events[i]) {
             if (frame_priority_pair.first > 1) {
@@ -137,17 +144,14 @@ namespace core {
             }
           }
         }
+
+        if (MINIMUM_EVENT_RESERVE << m_reserve_level < extra_event_count)
+          increase_reserve_level();
       }
 
 
       t_event_vector pull_events() {
-        t_event_vector result;
-
-        for (int i(0); i < PRIORITY::MAX; ++i) {
-          result.insert(std::end(result), std::begin(*(*m_queued_front_events)[i]), std::end(*(*m_queued_front_events)[i]));
-        }
-
-        return result;
+        return m_front_events;
       }
 
 
@@ -156,10 +160,10 @@ namespace core {
           throw std::runtime_error("scheduler::enqueue: priority exceeds priority limits");
 
         // ensure sufficient capacity without constant reallocation
-        auto priority_queue = (*m_queued_back_events)[priority];
+        auto& priority_queue = (*m_queued_back_events)[priority];
         if (priority_queue->size() == priority_queue->capacity()) {
+          increase_reserve_level();
           priority_queue->resize(priority_queue->capacity() << 1);
-          (*m_queued_front_events)[priority]->resize(priority_queue->capacity() << 1);
         }
         priority_queue->push_back(new core::event::event(e));
       }
@@ -198,12 +202,14 @@ namespace core {
        protected:
 
 
-      static constexpr std::uint32_t MINIMUM_EVENT_RESERVE =64;
+      static constexpr std::uint64_t MINIMUM_EVENT_RESERVE = 64;
 
-      t_event_queue* m_queued_front_events;
+
+      t_event_vector m_front_events;
       t_event_queue* m_queued_back_events;
       t_event_map m_time_delayed_events;
       t_event_map m_frame_delayed_events;
+      std::uint64_t m_reserve_level;
     };
 
   }
