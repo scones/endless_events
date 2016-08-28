@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_CASE(getter) {
   );
 
   BOOST_CHECK("1" == e.get_type());
-  BOOST_CHECK(512 == e["id"]);
+  BOOST_CHECK(std::uint64_t(512) == e["id"]);
 }
 
 

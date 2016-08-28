@@ -20,6 +20,10 @@
 #include <thread>
 
 
+#include <boost/any.hpp>
+#include <boost/type_erasure/typeid_of.hpp>
+
+
 std::uint64_t callback_call_counter(0);
 
 
@@ -43,7 +47,7 @@ BOOST_AUTO_TEST_CASE(enqueue_swap_test) {
   x.swap();
   events = x.poll_events();
   BOOST_CHECK_MESSAGE(1 == events->size(), "scheduled event missing after swap");
-  BOOST_CHECK_MESSAGE(33 == (*events)[0]->get_argument("id").get_uint_value(), "wrong event pulled from scheduler");
+  BOOST_CHECK_MESSAGE(std::uint64_t(33) == (*events)[0]->get_argument("id"), "wrong event pulled from scheduler");
 
   x.swap();
   events = x.poll_events();
@@ -71,7 +75,7 @@ BOOST_AUTO_TEST_CASE(enqueue_frame_delayed_swap_test) {
   x.swap();
   events = x.poll_events();
   BOOST_CHECK_MESSAGE(1 == events->size(), "scheduled event should appear on the second frame");
-  BOOST_CHECK_MESSAGE(2 == (*events)[0]->get_argument("id").get_uint_value(), "wrong event pulled from scheduler");
+  BOOST_CHECK_MESSAGE(std::uint64_t(2) == (*events)[0]->get_argument("id"), "wrong event pulled from scheduler");
 
   x.swap();
   events = x.poll_events();
@@ -85,7 +89,7 @@ BOOST_AUTO_TEST_CASE(enqueue_frame_delayed_swap_test) {
 
 BOOST_AUTO_TEST_CASE(enqueue_time_delayed_swap_test) {
   core::event::scheduler x;
-  core::event::scheduler::t_event_vector const* events;
+  core::event::scheduler::t_event_vector* events;
 
   x.enqueue_time_delayed({"some other event", {{"id", std::uint64_t(3)}}}, 530);
 
@@ -105,7 +109,7 @@ BOOST_AUTO_TEST_CASE(enqueue_time_delayed_swap_test) {
   x.swap();
   events = x.poll_events();
   BOOST_CHECK_MESSAGE(1 == events->size(), "scheduled event should appear when the time has arrived");
-  BOOST_CHECK_MESSAGE(3 == (*events)[0]->get_argument("id").get_uint_value(), "wrong event pulled from scheduler");
+  BOOST_CHECK_MESSAGE(std::uint64_t(3) == (*events)[0]->get_argument("id"), "wrong event pulled from scheduler");
 
   std::this_thread::sleep_for(std::chrono::milliseconds(20));
   x.swap();
