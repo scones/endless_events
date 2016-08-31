@@ -9,9 +9,6 @@
 #define INCLUDE_CORE_EVENT_EVENT_H_
 
 
-#include "variant.h"
-
-
 #include <unordered_map>
 #include <string>
 #include <initializer_list>
