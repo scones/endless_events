@@ -2,7 +2,7 @@ CC                 = g++
 
 INCLUDES           = -I../include -Iinclude
 
-CFLAGS             = $(INCLUDES) -c -Wall -pedantic -std=c++11 -finput-charset=UTF-8 -ggdb
+CFLAGS             = $(INCLUDES) -c -Wall -pedantic -std=c++17 -finput-charset=UTF-8 -O2 -ggdb
 
 LIB_PATHS          = -Llib
 LIBS_STATIC_BOOST  = -lboost_system-mt
